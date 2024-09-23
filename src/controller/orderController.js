@@ -12,7 +12,7 @@ const createOrder = catchAsync(async (req, res, next) => {
     const is_live = false;
     
     const postBody = req.body;
-    const { price, orderItemName, address, name, email, phone } = postBody;
+    const { price, productName, address, name, email, phone } = postBody;
     
     // Generate unique transaction ID
     const tran_id = uuidv4();
@@ -23,6 +23,7 @@ const createOrder = catchAsync(async (req, res, next) => {
         transactionID: tran_id,
         paymentStatus: 'pending',
     };
+console.log(orderData);
 
     const order = await orderService.createOrder(orderData);
 
@@ -36,7 +37,7 @@ const createOrder = catchAsync(async (req, res, next) => {
         cancel_url: `http://localhost:3030/cancel`,
         ipn_url: `http://localhost:3030/ipn`,
         shipping_method: 'Courier',
-        product_name: orderItemName,
+        product_name: productName,
         product_category: 'software',
         product_profile: 'non-physical-goods',
         cus_name: name,
@@ -55,23 +56,24 @@ const createOrder = catchAsync(async (req, res, next) => {
 
     // Call SSLCommerz API and handle response
     sslcz.init(data)
-        .then(apiResponse => {
-            let GatewayPageURL = apiResponse.GatewayPageURL;
-            if (GatewayPageURL) {
-                // Send the GatewayPageURL in the response
-                res.status(httpStatus.OK).json({
-                    success: true,
-                    message: 'Payment gateway initialized successfully',
-                    GatewayPageURL: GatewayPageURL
-                });
-            } else {
-                throw new ApiError(httpStatus.BAD_REQUEST, 'Unable to initiate payment');
-            }
-        })
-        .catch(err => {
-            // Handle any errors from SSLCommerz API
-            next(new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'Payment initialization failed'));
-        });
+    .then(apiResponse => {
+        console.log('SSLCommerz Response:', apiResponse); // Log response
+        let GatewayPageURL = apiResponse.GatewayPageURL;
+        if (GatewayPageURL) {
+            res.status(httpStatus.OK).json({
+                success: true,
+                message: 'Payment gateway initialized successfully',
+                GatewayPageURL: GatewayPageURL
+            });
+        } else {
+            throw new ApiError(httpStatus.BAD_REQUEST, 'Unable to initiate payment');
+        }
+    })
+    .catch(err => {
+        console.error('SSLCommerz Error:', err); // Log detailed error
+        next(new ApiError(httpStatus.INTERNAL_SERVER_ERROR, `Payment initialization failed${err}`));
+    });
+
 });
 // Get all orders
 const getOrders = catchAsync(async (req, res, next) => {

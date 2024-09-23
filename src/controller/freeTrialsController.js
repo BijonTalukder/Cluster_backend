@@ -46,7 +46,9 @@ const createFreeTrial = catchAsync(async (req, res, next) => {
   }
 
   // Send the email
-  await SendEmailUtility(email, emailText, emailSubject);
+  const res1 = await SendEmailUtility(email, emailText, emailSubject);
+  console.log(res1);
+  
   sendResponse(res, {
     statusCode: httpStatus.CREATED, 
     success: true,

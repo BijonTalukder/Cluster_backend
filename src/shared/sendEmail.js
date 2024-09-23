@@ -3,19 +3,19 @@ import nodemailer  from "nodemailer"
 const SendEmailUtility = async (EmailTo, EmailText, EmailSubject) => {
     console.log(EmailTo)
   let transporter = nodemailer.createTransport({
-    host: "mail.ownfood.com.bd",
-    port: 587,
+    host: "mail.clusterantivirus.com",
+    port: 465,
     secure: false,
     auth: {
-      user: "noreply@ownfood.com.bd",
-      pass: "HD@OWNFOOD4321",
+      user: "noreply@clusterantivirus.com",
+      pass: "Sx6PytnOb2Ny",
     },
     tls: {
       rejectUnauthorized: false,
     },
   });
   let mailOption = {
-    from: "OwnFood Account <noreply@ownfood.com.bd>",
+    from: " Account <noreply@clusterantivirus.com>",
     to: EmailTo,
     subject: EmailSubject,
     html: EmailText,

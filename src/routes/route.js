@@ -3,11 +3,11 @@ import { productController } from '../controller/productController.js';
 import { productKeyController } from '../controller/productKeysController.js';
 import { freeTrialsController } from '../controller/freeTrialsController.js';
 import { orderController } from '../controller/orderController.js';
-import SSLCommerzPayment from 'sslcommerz-lts';
 import ApiError from '../error/handleApiError.js';
 import orderModel from '../model/orderModel.js';
 import productKeyModel from '../model/productKeyModel.js';
 import sendResponse from '../shared/sendResponse.js';
+import { adminController } from '../controller/adminController.js';
 
 
 
@@ -42,7 +42,14 @@ router.patch("/orders/update/:id",orderController.updateOrder);
 router .delete("/orders/delete/:id",orderController.deleteOrder);
 
 
-//------payment
+//--------------------------admin routes---------------------------------------
+router.post("/admins/create",adminController.createAdmin);
+router.post("/admins/login",adminController.loginAdmin)
+// router.get("/")
+
+
+
+//------------------------------payment routes----------------------------------
 router.post("/success",async(req,res)=>{
     const { transactionId, status } = req.query;  // SSLCommerz sends the transaction ID and status in the query parameters
     
@@ -90,21 +97,21 @@ router.post("/success",async(req,res)=>{
         }
       );
       
-    //   const orderDetails = await orderModel.findOne({
-    //     where: {
-    //         transactionID: transactionId,
-    //     },
-    // });
+      const orderDetails = await orderModel.findOne({
+        where: {
+            transactionID: transactionId,
+        },
+    });
 
-      // const emailSubject = 'Your Product Key';
-      // const emailText = `
-      //   <h3>Dear Customer,</h3>
-      //   <p>Thank you for your purchase! Below is your product key:</p>
-      //   <p><strong>Product Key:</strong> ${unsoldProductKey.name}</p>
-      //   <p>We hope you enjoy using the product. If you have any questions, feel free to reach out to us.</p>
-      // `;
+      const emailSubject = 'Your Product Key';
+      const emailText = `
+        <h3>Dear Customer,</h3>
+        <p>Thank you for your purchase! Below is your product key:</p>
+        <p><strong>Product Key:</strong> ${unsoldProductKey.name}</p>
+        <p>We hope you enjoy using the product. If you have any questions, feel free to reach out to us.</p>
+      `;
       
-      // await SendEmailUtility(orderDetails.email, emailText, emailSubject);
+      await SendEmailUtility(orderDetails.email, emailText, emailSubject);
       sendResponse(res,{
         statusCode: httpStatus.OK,
         success: true,
