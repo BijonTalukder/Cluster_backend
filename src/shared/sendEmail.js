@@ -1,28 +1,37 @@
-import nodemailer  from "nodemailer"
+import nodemailer from "nodemailer";
 
 const SendEmailUtility = async (EmailTo, EmailText, EmailSubject) => {
-    console.log(EmailTo)
-  let transporter = nodemailer.createTransport({
-    host: "mail.clusterantivirus.com",
-    port: 465,
-    secure: false,
-    auth: {
-      user: "noreply@clusterantivirus.com",
-      pass: "Sx6PytnOb2Ny",
-    },
-    tls: {
-      rejectUnauthorized: false,
-    },
-  });
-  let mailOption = {
-    from: " Account <noreply@clusterantivirus.com>",
-    to: EmailTo,
-    subject: EmailSubject,
-    html: EmailText,
-  };
-  
+  try {
+    console.log("Sending email to:", EmailTo);
 
-  const test = await transporter.sendMail(mailOption);
-  return test;
+    let transporter = nodemailer.createTransport({
+      host: "mail.clusterantivirus.com",
+      port: 465,
+      secure: true, 
+      auth: {
+        user:"noreply@clusterantivirus.com", 
+        pass: "Sx6PytnOb2Ny", 
+      },
+      tls: {
+        rejectUnauthorized: false,
+      },
+    });
+
+    let mailOption = {
+      from: "Account <noreply@clusterantivirus.com>",
+      to: EmailTo,
+      subject: EmailSubject,
+      html: EmailText,
+    };
+
+    const response = await transporter.sendMail(mailOption);
+    console.log("Email sent successfully:", response);
+
+    return response;
+  } catch (error) {
+    console.error("Error sending email:", error);
+    throw new Error("Email could not be sent.");
+  }
 };
-export default SendEmailUtility
+
+export default SendEmailUtility;

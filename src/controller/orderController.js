@@ -5,6 +5,7 @@ import httpStatus from 'http-status';
 import ApiError from '../error/handleApiError.js';
 import { v4 as uuidv4 } from 'uuid';
 import SSLCommerzPayment from 'sslcommerz-lts';
+import { dotenvHelper } from '../config/dotenv.js';
 // Create an order
 const createOrder = catchAsync(async (req, res, next) => {
     const store_id = 'bijon66efc7e8a6d5e';
@@ -32,7 +33,7 @@ console.log(orderData);
         total_amount: price,
         currency: 'BDT',
         tran_id: tran_id, // unique tran_id for each API call
-        success_url: `http://localhost:4000/api/v1/success?transactionId=${tran_id}`,
+        success_url: `${dotenvHelper.backend_url}/api/v1/success?transactionId=${tran_id}`,
         fail_url: `http://localhost:3030/fail`,
         cancel_url: `http://localhost:3030/cancel`,
         ipn_url: `http://localhost:3030/ipn`,

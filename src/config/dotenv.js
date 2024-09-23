@@ -11,4 +11,6 @@ export const dotenvHelper = {
     dbConfig,
     port: process.env.PORT,
     database_url: process.env.DATABASE_URL,
+    frontend_url:process.env.FRONTLINK,
+    backend_url:process.env.BACKLINK
   };

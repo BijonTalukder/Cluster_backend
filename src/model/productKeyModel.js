@@ -12,7 +12,7 @@ ID: {
     type:DataTypes.STRING,
     allowNull:false
  },
- key:{
+ productKey:{
   type:DataTypes.STRING,
   allowNull:false
  },
@@ -29,5 +29,4 @@ status:{
 });
 
 export default productKeyModel;
-//product type table
 

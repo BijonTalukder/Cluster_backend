@@ -8,7 +8,10 @@ import orderModel from '../model/orderModel.js';
 import productKeyModel from '../model/productKeyModel.js';
 import sendResponse from '../shared/sendResponse.js';
 import { adminController } from '../controller/adminController.js';
-
+import { dotenvHelper } from '../config/dotenv.js';
+import SendEmailUtility from '../shared/sendEmail.js';
+import httpStatus from 'http-status';
+// import SendEmailUtility from '../';
 
 
 const router = express.Router();
@@ -50,76 +53,150 @@ router.post("/admins/login",adminController.loginAdmin)
 
 
 //------------------------------payment routes----------------------------------
-router.post("/success",async(req,res)=>{
-    const { transactionId, status } = req.query;  // SSLCommerz sends the transaction ID and status in the query parameters
+// router.post("/success",async(req,res,next)=>{
+//     const { transactionId, status } = req.query;  // SSLCommerz sends the transaction ID and status in the query parameters
     
-    if (!transactionId) {
-        return next(new ApiError(httpStatus.BAD_REQUEST, 'Invalid payment data'));
-      }
+//     if (!transactionId) {
+//         return next(new ApiError(httpStatus.BAD_REQUEST, 'Invalid payment data'));
+//       }
+//   console.log("hello dev");
   
+//       // Find one unsold product key
+//       const unsoldProductKey = await productKeyModel
+//       .findOne({
+//         where: {
+//           status: 'unsold',
+//         },
+//       });
+//       console.log("hello dev1",unsoldProductKey.dataValues);
+//       if (!unsoldProductKey.dataValues) {
+//         return next(new ApiError(httpStatus.NOT_FOUND, 'No unsold product key found'));
+//       }
+  
+//       // Update the order with the product key and set payment status to 'successed'
+//       const updatedOrder = await orderModel.update(
+//         {
+//           paymentStatus: 'successed',
+//           productKeyID: unsoldProductKey.dataValues.ID,
+//         },
+//         {
+//           where: {
+//             transactionID: transactionId,
+//           },
+//         }
+//       );
+  
+//       if (!updatedOrder) {
+//         return next(new ApiError(httpStatus.NOT_FOUND, 'Order not found'));
+//       }
+  
+//       // Update the product key status to 'sold'
+//       await productKeyModel.update(
+//         {
+//           status: 'sold',
+//         },
+//         {
+//           where: {
+//             ID: unsoldProductKey.dataValues.ID,
+//           },
+//         }
+//       );
+      
+//       const orderDetails = await orderModel.findOne({
+//         where: {
+//             transactionID: transactionId,
+//         },
+//     });
+// console.log(orderDetails,"details");
+
+//       const emailSubject = 'Your Product Key';
+//       const emailText = `
+//         <h3>Dear Customer,</h3>
+//         <p>Thank you for your purchase! Below is your product key:</p>
+//         <p><strong>Product Key:</strong> ${unsoldProductKey.dataValues.name}</p>
+//         <p>We hope you enjoy using the product. If you have any questions, feel free to reach out to us.</p>
+//       `;
+      
+//       await SendEmailUtility(orderDetails.dataValues.email, emailText, emailSubject);
+
+
+//     res.redirect(`${dotenvHelper.frontend_url}/Product/success`)
+    
+// })
+router.post("/success", async (req, res, next) => {
+  const { transactionId } = req.query; // Assuming the transaction ID comes from query parameters
+
+  if (!transactionId) {
+      return next(new ApiError(httpStatus.BAD_REQUEST, 'Invalid payment data'));
+  }
+  
+  console.log("Processing payment success...");
+
+  try {
       // Find one unsold product key
       const unsoldProductKey = await productKeyModel.findOne({
-        where: {
-          status: 'unsold',
-        },
+          where: { status: 'unsold' },
       });
-  
-      if (!unsoldProductKey) {
-        return next(new ApiError(httpStatus.NOT_FOUND, 'No unsold product key found'));
-      }
-  
-      // Update the order with the product key and set payment status to 'successed'
-      const updatedOrder = await orderModel.update(
-        {
-          paymentStatus: 'successed',
-          productKeyID: unsoldProductKey.ID,
-        },
-        {
-          where: {
-            transactionID: transactionId,
-          },
-        }
-      );
-  
-      if (!updatedOrder) {
-        return next(new ApiError(httpStatus.NOT_FOUND, 'Order not found'));
-      }
-  
-      // Update the product key status to 'sold'
-      await productKeyModel.update(
-        {
-          status: 'sold',
-        },
-        {
-          where: {
-            ID: unsoldProductKey.ID,
-          },
-        }
-      );
-      
-      const orderDetails = await orderModel.findOne({
-        where: {
-            transactionID: transactionId,
-        },
-    });
 
+      console.log("Unsold product key found:", unsoldProductKey?.dataValues);
+
+      if (!unsoldProductKey) {
+          return next(new ApiError(httpStatus.NOT_FOUND, 'No unsold product key found'));
+      }
+
+      // Update the order with the product key and set payment status to 'successed'
+      const updatedRows = await orderModel.update(
+          {
+              paymentStatus: 'successed',
+              productKeyID: unsoldProductKey.ID,
+          },
+          {
+              where: { transactionID: transactionId },
+          }
+      );
+console.log(updatedRows);
+
+      if (updatedRows === 0) {
+          return next(new ApiError(httpStatus.NOT_FOUND, 'Order not found'));
+      }
+
+      //Update the product key status to 'sold'
+     const pro= await productKeyModel.update(
+          { status: 'sold' },
+          { where: { ID: unsoldProductKey.ID } }
+      );
+console.log(pro);
+
+      // // Retrieve order details for sending email
+      const orderDetails = await orderModel.findOne({
+          where: { transactionID: transactionId },
+      });
+
+      if (!orderDetails) {
+          return next(new ApiError(httpStatus.NOT_FOUND, 'Order details not found'));
+      }
+
+      console.log("Order details retrieved:", orderDetails.dataValues);
+
+      // Prepare and send the email
       const emailSubject = 'Your Product Key';
       const emailText = `
-        <h3>Dear Customer,</h3>
-        <p>Thank you for your purchase! Below is your product key:</p>
-        <p><strong>Product Key:</strong> ${unsoldProductKey.name}</p>
-        <p>We hope you enjoy using the product. If you have any questions, feel free to reach out to us.</p>
+          <h3>Dear Customer,</h3>
+          <p>Thank you for your purchase! Below is your product key:</p>
+          <p><strong>Product Key:</strong> ${unsoldProductKey.name}</p>
+          <p>We hope you enjoy using the product. If you have any questions, feel free to reach out to us.</p>
       `;
       
       await SendEmailUtility(orderDetails.email, emailText, emailSubject);
-      sendResponse(res,{
-        statusCode: httpStatus.OK,
-        success: true,
-        message: 'purchase successfully',
-        data: null,
-      })
-    
-})
+
+      // Redirect or respond
+      res.redirect(`${dotenvHelper.frontend_url}/Product/success`);
+
+  } catch (error) {
+      console.error("Error processing payment success:", error);
+      return next(new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'Internal server error'));
+  }
+});
 
 
 export default router;
