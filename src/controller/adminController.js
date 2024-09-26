@@ -113,11 +113,35 @@ const loginAdmin = catchAsync(async(req,res,next)=>{
       });
 
 })
+
+//change [passsword]
+const changePassword = catchAsync(async (req, res, next) => {
+  const { oldPassword, newPassword } = req.body;
+  const { id } = req.user; 
+
+  // Validate input
+  if (!oldPassword || !newPassword) {
+    throw new ApiError(httpStatus.BAD_REQUEST, 'Old password and new password are required');
+  }
+  try {
+    const admin = await adminService.changePassword(id, oldPassword, newPassword);
+
+    sendResponse(res, {
+      statusCode: httpStatus.OK,
+      success: true,
+      message: 'Password changed successfully',
+      data: { adminId: admin.ID, name: admin.name, email: admin.email },
+    });
+  } catch (error) {
+    next(new ApiError(httpStatus.BAD_REQUEST, error.message));
+  }
+});
 export const adminController = {
   createAdmin,
   getAdmins,
   getAdminById,
   updateAdmin,
   deleteAdmin,
-  loginAdmin
+  loginAdmin,
+  changePassword
 };

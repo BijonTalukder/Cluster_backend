@@ -11,6 +11,7 @@ import { adminController } from '../controller/adminController.js';
 import { dotenvHelper } from '../config/dotenv.js';
 import SendEmailUtility from '../shared/sendEmail.js';
 import httpStatus from 'http-status';
+import authMiddleware from '../middleware/AuthMiddleware.js';
 // import SendEmailUtility from '../';
 
 
@@ -47,7 +48,11 @@ router .delete("/orders/delete/:id",orderController.deleteOrder);
 
 //--------------------------admin routes---------------------------------------
 router.post("/admins/create",adminController.createAdmin);
-router.post("/admins/login",adminController.loginAdmin)
+router.post("/admins/login",adminController.loginAdmin);
+router.get("/admins/:id",adminController.getAdminById);
+router.patch("/admins/update/:id",adminController.updateAdmin);
+router.post("/admins/change-password",authMiddleware,adminController.changePassword)
+
 // router.get("/")
 
 
