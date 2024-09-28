@@ -7,9 +7,7 @@ const createFreeTrial = async (postBody) => {
 
 // Get all free trials
 const getAllFreeTrials = async () => {
-    return freeTrialsModel.findAll({
-        order: [['createdAt', 'DESC']], // Assuming createdAt is the timestamp field
-    });
+    return freeTrialsModel.findAll();
 };
 
 // Update a free trial

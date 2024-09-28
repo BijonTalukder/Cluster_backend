@@ -7,9 +7,7 @@ const createProductKey = async (postBody) => {
 
 // Get all product keys
 const getAllProductKeys = async () => {
-    return productKeyModel.findAll({
-        order: [['createdAt', 'DESC']], // Assuming createdAt is the timestamp field
-    });
+    return productKeyModel.findAll();
 };
 
 // Update a product key

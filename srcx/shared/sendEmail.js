@@ -5,20 +5,20 @@ const SendEmailUtility = async (EmailTo, EmailText, EmailSubject) => {
     console.log("Sending email to:", EmailTo);
 
     let transporter = nodemailer.createTransport({
-      host: "mail.ownfood.com.bd",
+      host: "mail.clusterantivirus.com",
       port: 465,
       secure: true, 
       auth: {
-        user: "noreply@ownfood.com.bd",
-        pass: "HD@OWNFOOD4321", 
+        user:"noreply@clusterantivirus.com", 
+        pass: "Sx6PytnOb2Ny", 
       },
       tls: {
-        rejectUnauthorized: true,
+        rejectUnauthorized: false,
       },
     });
 
     let mailOption = {
-      from: "Cluster Antivirus <noreply@ownfood.com.bd>",
+      from: "Account <noreply@clusterantivirus.com>",
       to: EmailTo,
       subject: EmailSubject,
       html: EmailText,
@@ -26,10 +26,6 @@ const SendEmailUtility = async (EmailTo, EmailText, EmailSubject) => {
 
     const response = await transporter.sendMail(mailOption);
     console.log("Email sent successfully:", response);
-    if(!response)
-    {
-      throw new Error("Email could not be sent.");
-    }
 
     return response;
   } catch (error) {

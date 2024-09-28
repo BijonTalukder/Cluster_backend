@@ -12,7 +12,6 @@ import { dotenvHelper } from '../config/dotenv.js';
 import SendEmailUtility from '../shared/sendEmail.js';
 import httpStatus from 'http-status';
 import authMiddleware from '../middleware/AuthMiddleware.js';
-import { paymentController } from '../controller/paymentController.js';
 // import SendEmailUtility from '../';
 
 
@@ -129,14 +128,80 @@ router.post("/admins/change-password",authMiddleware,adminController.changePassw
 //     res.redirect(`${dotenvHelper.frontend_url}/Product/success`)
     
 // })
-router.post("/success", paymentController.handlePaymentSuccess);
+router.post("/success", async (req, res, next) => {
+  const { transactionId } = req.query; // Assuming the transaction ID comes from query parameters
 
+  if (!transactionId) {
+      return next(new ApiError(httpStatus.BAD_REQUEST, 'Invalid payment data'));
+  }
+  
+  console.log("Processing payment success...");
 
-// Fail route - handles failed payment attempts and updates the order status
-router.post('/fail', paymentController.handlePaymentFail);
+  try {
+      // Find one unsold product key
+      const unsoldProductKey = await productKeyModel.findOne({
+          where: { status: 'unsold' },
+      });
 
-// Cancel route - handles cancelled payment attempts and updates the order status
-router.post('/cancel', paymentController.handlePaymentCancel);
+      console.log("Unsold product key found:", unsoldProductKey?.dataValues);
+
+      if (!unsoldProductKey) {
+          return next(new ApiError(httpStatus.NOT_FOUND, 'No unsold product key found'));
+      }
+
+      // Update the order with the product key and set payment status to 'successed'
+      const updatedRows = await orderModel.update(
+          {
+              paymentStatus: 'successed',
+              productKeyID: unsoldProductKey.ID,
+          },
+          {
+              where: { transactionID: transactionId },
+          }
+      );
+console.log(updatedRows);
+
+      if (updatedRows === 0) {
+          return next(new ApiError(httpStatus.NOT_FOUND, 'Order not found'));
+      }
+
+      //Update the product key status to 'sold'
+     const pro= await productKeyModel.update(
+          { status: 'sold' },
+          { where: { ID: unsoldProductKey.ID } }
+      );
+console.log(pro);
+
+      // // Retrieve order details for sending email
+      const orderDetails = await orderModel.findOne({
+          where: { transactionID: transactionId },
+      });
+
+      if (!orderDetails) {
+          return next(new ApiError(httpStatus.NOT_FOUND, 'Order details not found'));
+      }
+
+      console.log("Order details retrieved:", orderDetails.dataValues);
+
+      // Prepare and send the email
+      const emailSubject = 'Your Product Key';
+      const emailText = `
+          <h3>Dear Customer,</h3>
+          <p>Thank you for your purchase! Below is your product key:</p>
+          <p><strong>Product Key:</strong> ${unsoldProductKey.name}</p>
+          <p>We hope you enjoy using the product. If you have any questions, feel free to reach out to us.</p>
+      `;
+      
+      await SendEmailUtility(orderDetails.email, emailText, emailSubject);
+
+      // Redirect or respond
+      res.redirect(`${dotenvHelper.frontend_url}/Product/success`);
+
+  } catch (error) {
+      console.error("Error processing payment success:", error);
+      return next(new ApiError(httpStatus.INTERNAL_SERVER_ERROR, 'Internal server error'));
+  }
+});
 
 
 export default router;

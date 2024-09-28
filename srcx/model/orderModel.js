@@ -45,7 +45,7 @@ price:{
 },
 
 paymentStatus:{
-    type:DataTypes.ENUM("pending","successed","failed","cancelled"),
+    type:DataTypes.ENUM("pending","successed"),
     defaultValue:"pending",
     allowNull:false
     

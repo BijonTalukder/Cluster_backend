@@ -34,9 +34,9 @@ console.log(orderData);
         currency: 'BDT',
         tran_id: tran_id, // unique tran_id for each API call
         success_url: `${dotenvHelper.backend_url}/api/v1/success?transactionId=${tran_id}`,
-        fail_url: `${dotenvHelper.backend_url}/api/v1/fail?transactionId=${tran_id}`,
-        cancel_url: `${dotenvHelper.backend_url}/api/v1/cancel?transactionId=${tran_id}`,
-        ipn_url: `${dotenvHelper.backend_url}/api/v1/cancel?transactionId=${tran_id}`,
+        fail_url: `http://localhost:3030/fail`,
+        cancel_url: `http://localhost:3030/cancel`,
+        ipn_url: `http://localhost:3030/ipn`,
         shipping_method: 'Courier',
         product_name: productName,
         product_category: 'software',

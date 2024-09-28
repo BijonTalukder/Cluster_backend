@@ -7,9 +7,7 @@ const createOrder = async (postBody) => {
 
 // Get all orders
 const getAllOrders = async () => {
-    return orderModel.findAll({
-        order: [['createdAt', 'DESC']], // Assuming createdAt is the timestamp field
-    });
+    return orderModel.findAll();
 };
 
 // Update an order
