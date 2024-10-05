@@ -5,8 +5,23 @@ import router from './src/routes/route.js';
 import globalErrorHandler from './src/error/globalErrorHandler.js';
 import httpStatus from 'http-status';
 import cors from 'cors'
+
+import path  from  'path';
+
+
+import { fileURLToPath } from 'url'; // Import necessary utilities
+
+// Get the __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+
+
+
 const app = express();
 app.use(express.json());
+
+app.use('/images', express.static(path.join(__dirname, 'src', 'Image')));
 // const allowedOrigins = [
 //   'http://localhost:3000', 
 //   'https://cluster-project.vercel.app/' 
